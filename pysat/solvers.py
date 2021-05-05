@@ -4652,6 +4652,15 @@ class Minisat22(object):
             model = pysolvers.minisat22_model(self.minisat)
             return model if model != None else []
 
+    def get_score(self):
+        """
+            Get a score
+        """
+
+        if self.minisat:
+            score = pysolvers.minisat22_score(self.minisat)
+            return score
+
     def get_core(self):
         """
             Get an unsatisfiable core if the formula was previously
