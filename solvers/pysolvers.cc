@@ -6774,7 +6774,7 @@ static PyObject *py_minisat22_model(PyObject *self, PyObject *args)
      Minisat22::Solver *s = (Minisat22::Solver *)pyobj_to_void(s_obj);
 
      // minisat's score
-     Minisat22::vec<Minisat22::int> *m = &(s->scoreActivity);
+     Minisat22::vec<int> *m = &(s->scoreActivity);
 
      if (m->size()) {
          PyObject *score = PyList_New(m->size() - 1);
