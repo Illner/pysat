@@ -4652,14 +4652,23 @@ class Minisat22(object):
             model = pysolvers.minisat22_model(self.minisat)
             return model if model != None else []
 
-    def get_score(self):
+    def get_activity(self):
         """
-            Get a score
+            Get an activity
         """
 
         if self.minisat:
-            score = pysolvers.minisat22_score(self.minisat)
-            return score
+            activity = pysolvers.minisat22_activity(self.minisat)
+            return activity
+
+    def get_activity_bump(self):
+        """
+            Get an activity (bump)
+        """
+
+        if self.minisat:
+            activity = pysolvers.minisat22_activity_bump(self.minisat)
+            return activity
 
     def get_core(self):
         """

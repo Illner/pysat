@@ -91,7 +91,8 @@ static char   setincr_docstring[] = "Set incremental mode (for Glucose3 only).";
 static char   tracepr_docstring[] = "Trace resolution proof.";
 static char      core_docstring[] = "Get an unsatisfiable core if formula is UNSAT.";
 static char     model_docstring[] = "Get a model if formula is SAT.";
-static char     score_docstring[] = "Get a score.";
+static char      activity_docstring[] = "Get an activity.";
+static char activity_bump_docstring[] = "Get an activity (bump).";
 static char     nvars_docstring[] = "Get number of variables used by the solver.";
 static char      ncls_docstring[] = "Get number of clauses used by the solver.";
 static char       del_docstring[] = "Delete a previously created solver object.";
@@ -317,7 +318,8 @@ extern "C" {
 	static PyObject *py_minisat22_clearint  (PyObject *, PyObject *);
 	static PyObject *py_minisat22_core      (PyObject *, PyObject *);
 	static PyObject *py_minisat22_model     (PyObject *, PyObject *);
-	static PyObject *py_minisat22_score     (PyObject *, PyObject *);
+	static PyObject *py_minisat22_activity      (PyObject *, PyObject *);
+	static PyObject *py_minisat22_activity_bump (PyObject *, PyObject *);
 	static PyObject *py_minisat22_nof_vars  (PyObject *, PyObject *);
 	static PyObject *py_minisat22_nof_cls   (PyObject *, PyObject *);
 	static PyObject *py_minisat22_del       (PyObject *, PyObject *);
@@ -560,7 +562,8 @@ static PyMethodDef module_methods[] = {
 	{ "minisat22_clearint",  py_minisat22_clearint,  METH_VARARGS,  clearint_docstring },
 	{ "minisat22_core",      py_minisat22_core,      METH_VARARGS,      core_docstring },
 	{ "minisat22_model",     py_minisat22_model,     METH_VARARGS,     model_docstring },
-	{ "minisat22_score",     py_minisat22_score,     METH_VARARGS,     score_docstring },
+	{ "minisat22_activity",         py_minisat22_activity,      METH_VARARGS,   activity_docstring },
+	{ "minisat22_activity_bump",    py_minisat22_activity_bump, METH_VARARGS,   activity_bump_docstring },
 	{ "minisat22_nof_vars",  py_minisat22_nof_vars,  METH_VARARGS,     nvars_docstring },
 	{ "minisat22_nof_cls",   py_minisat22_nof_cls,   METH_VARARGS,      ncls_docstring },
 	{ "minisat22_del",       py_minisat22_del,       METH_VARARGS,       del_docstring },
@@ -609,6 +612,13 @@ static int pyint_to_cint(PyObject *i_obj)
 static PyObject *pyint_from_cint(int i)
 {
 	return PyLong_FromLong(i);
+}
+
+// PyFloat_FromDouble()
+//=============================================================================
+static PyObject *pydouble_from_cdouble(double d)
+{
+	return PyFloat_FromDouble(d);
 }
 
 // PyInt_Check()
@@ -6763,7 +6773,7 @@ static PyObject *py_minisat22_model(PyObject *self, PyObject *args)
 
  //
  //=============================================================================
- static PyObject *py_minisat22_score(PyObject *self, PyObject *args)
+ static PyObject *py_minisat22_activity(PyObject *self, PyObject *args)
  {
      PyObject *s_obj;
 
@@ -6773,19 +6783,50 @@ static PyObject *py_minisat22_model(PyObject *self, PyObject *args)
      // get pointer to solver
      Minisat22::Solver *s = (Minisat22::Solver *)pyobj_to_void(s_obj);
 
-     // minisat's score
+     // minisat's activity
      Minisat22::vec<int> *m = &(s->scoreActivity);
 
      if (m->size()) {
-         PyObject *score = PyList_New(m->size() - 1);
+         PyObject *activity = PyList_New(m->size() - 1);
          for (int i = 1; i < m->size(); ++i) {
-             int l = (*m)[i];
-             PyObject *lit = pyint_from_cint(l);
-             PyList_SetItem(score, i - 1, lit);
+             int v = (*m)[i];
+             PyObject *var = pyint_from_cint(v);
+             PyList_SetItem(activity, i - 1, var);
          }
 
-         PyObject *ret = Py_BuildValue("O", score);
-         Py_DECREF(score);
+         PyObject *ret = Py_BuildValue("O", activity);
+         Py_DECREF(activity);
+         return ret;
+     }
+
+     Py_RETURN_NONE;
+ }
+
+ //
+ //=============================================================================
+ static PyObject *py_minisat22_activity_bump(PyObject *self, PyObject *args)
+ {
+     PyObject *s_obj;
+
+     if (!PyArg_ParseTuple(args, "O", &s_obj))
+        return NULL;
+
+     // get pointer to solver
+     Minisat22::Solver *s = (Minisat22::Solver *)pyobj_to_void(s_obj);
+
+     // minisat's activity (bump)
+     Minisat22::vec<double> *m = &(s->activity);
+
+     if (m->size()) {
+         PyObject *activity = PyList_New(m->size() - 1);
+         for (int i = 1; i < m->size(); ++i) {
+             double v = (*m)[i];
+             PyObject *var = pydouble_from_cdouble(v);
+             PyList_SetItem(activity, i - 1, var);
+         }
+
+         PyObject *ret = Py_BuildValue("O", activity);
+         Py_DECREF(activity);
          return ret;
      }
 
